@@ -464,8 +464,12 @@ multi_polygon_type_fp simplify_cutins(const ring_type_fp& ring) {
     return {};
   }
   auto new_mls = eulerian_paths::make_eulerian_paths({linestring_type_fp(ring.cbegin(), ring.cend())}, true, false);
-  if (new_mls.size() != 1 || new_mls[0].front() != new_mls[0].back()) {
+  // if (new_mls.size() != 1 || new_mls[0].front() != new_mls[0].back()) {
+  if (new_mls.size() != 1) {
     cerr << "Internal error in gerberimporter" << endl;
+    cerr << "new_mls size: " << new_mls.size() 
+         << " front: " << new_mls[0].front()
+         << " back: " << new_mls[0].back() << endl;
     cerr << bg::wkt(ring) << std::endl;
     cerr << bg::wkt(new_mls) << std::endl;
     throw gerber_exception();
@@ -826,7 +830,10 @@ pair<multi_polygon_type_fp, map<coordinate_type_fp, multi_linestring_type_fp>> G
       contour = true;
     } else if (currentNet->interpolation == GERBV_INTERPOLATION_PAREA_END) {
       contour = false;
-      draws.push_back(simplify_cutins(region));
+      try {
+        draws.push_back(simplify_cutins(region));
+      } catch (...) {
+      }
       region.clear();
     } else if (currentNet->interpolation == GERBV_INTERPOLATION_CW_CIRCULAR ||
                currentNet->interpolation == GERBV_INTERPOLATION_CCW_CIRCULAR) {
